@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar Process Manager - Nothing OS / Impact Style</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=VT323&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f0f2f5;
+      color: #111111;
+      user-select: none;
+    }
+    
+    code, pre, .font-mono {
+      font-family: 'VT323', monospace;
+    }
+
+    /* Custom Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #e4e7eb;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #111111;
+      border-radius: 3px;
+    }
+
+    /* Nothing OS / Industrial Dot Grid Pattern */
+    .dot-grid {
+      background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* Orbit lines */
+    .orbit-line {
+      fill: none;
+      stroke: #d1d5db;
+      stroke-width: 1.5;
+      stroke-dasharray: 4 4;
+    }
+
+    .moon-link {
+      stroke: #ff4d00;
+      stroke-width: 2;
+      stroke-dasharray: 3 3;
+      animation: linkFlow 1.5s linear infinite;
+    }
+
+    @keyframes linkFlow {
+      from { stroke-dashoffset: 12; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* Nothing OS Red Accent Styles */
+    .nothing-card {
+      background: #ffffff;
+      border: 2px solid #111111;
+      border-radius: 20px;
+      box-shadow: 4px 4px 0px #111111;
+    }
+    
+    .nothing-btn {
+      border: 2px solid #111111;
+      border-radius: 9999px;
+      transition: all 0.1s ease;
+      box-shadow: 2px 2px 0px #111111;
+    }
+    .nothing-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: none !important;
+    }
+
+    /* Brushed metallic texture simulation */
+    .brushed-metal {
+      background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 50%, #94a3b8 100%);
+      border: 2px solid #111111;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-sm bg-[#f4f4f6]">
+
+  <!-- TOP HEADER -->
+  <header class="h-14 bg-white border-b-2 border-[#111] flex items-center justify-between px-6 select-none shrink-0 z-20 shadow-[0_2px_0_#111]">
+    <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-2">
+        <div class="w-7 h-7 rounded-lg border-2 border-[#111] bg-[#ff4d00] flex items-center justify-center text-white font-black shadow-[2px_2px_0_#111]">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+        </div>
+        <span class="font-extrabold text-[#111] tracking-wider text-sm uppercase">IMPACT.SOLAR // OS</span>
+        <span class="text-xs bg-[#111] text-white px-2 py-0.5 rounded-full font-mono font-bold">v3.2</span>
+      </div>
+      <div class="h-5 w-[2px] bg-[#111]"></div>
+      <span class="text-xs text-[#111] font-semibold flex items-center gap-1.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-ping"></span>
+        Nothing Telemetry Active
+      </span>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <!-- Live Simulation Toggle -->
+      <button id="toggle-sim-btn" onclick="toggleSimulation()" class="nothing-btn flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs bg-white text-[#111] font-bold hover:bg-[#111] hover:text-white transition">
+        <i data-lucide="activity" class="w-3.5 h-3.5 text-[#ff4d00]"></i>
+        <span id="sim-status-text">Simulate Live Orbit</span>
+      </button>
+
+      <!-- Spawn Task -->
+      <button onclick="spawnNewTask()" class="nothing-btn px-4 py-1.5 bg-[#ff4d00] text-white rounded-full text-xs font-bold hover:bg-[#111] transition flex items-center gap-1.5">
+        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Spawn Orbit
+      </button>
+    </div>
+  </header>
+
+  <!-- WORKSPACE CONTAINER -->
+  <div class="flex-1 flex overflow-hidden relative">
+    
+    <!-- LEFT PANEL (30%) -->
+    <aside id="left-nav" class="w-[30%] bg-white border-r-2 border-[#111] p-5 flex flex-col justify-between shrink-0 z-10 transition-all duration-500">
+      <div class="space-y-5 overflow-y-auto pr-1">
+        
+        <!-- System Pulse Card -->
+        <div>
+          <div class="text-xs font-black text-[#111] uppercase tracking-wider mb-2 flex items-center justify-between">
+            <span>System Pulse</span>
+            <span class="text-[#ff4d00] font-mono">LIVE METRICS</span>
+          </div>
+          <div class="nothing-card p-4 space-y-4">
+            <!-- CPU -->
+            <div>
+              <div class="flex justify-between text-xs mb-1 font-mono font-bold">
+                <span class="text-[#111] flex items-center gap-1.5"><i data-lucide="cpu" class="w-4 h-4 text-[#ff4d00]"></i> CPU Load</span>
+                <span id="stat-cpu-val" class="text-[#ff4d00]">34%</span>
+              </div>
+              <div class="w-full bg-[#f4f4f6] h-3 rounded-full border-2 border-[#111] overflow-hidden p-0.5">
+                <div id="stat-cpu-bar" class="bg-[#ff4d00] h-full rounded-full transition-all duration-500" style="width: 34%"></div>
+              </div>
+            </div>
+            <!-- RAM -->
+            <div>
+              <div class="flex justify-between text-xs mb-1 font-mono font-bold">
+                <span class="text-[#111] flex items-center gap-1.5"><i data-lucide="hard-drive" class="w-4 h-4 text-[#111]"></i> RAM Footprint</span>
+                <span id="stat-ram-val" class="text-[#111]">5.8 / 16 GB</span>
+              </div>
+              <div class="w-full bg-[#f4f4f6] h-3 rounded-full border-2 border-[#111] overflow-hidden p-0.5">
+                <div id="stat-ram-bar" class="bg-[#111] h-full rounded-full transition-all duration-500" style="width: 38%"></div>
+              </div>
+            </div>
+            <!-- Throughput -->
+            <div class="pt-2 flex justify-between items-center text-xs border-t-2 border-[#111] font-mono font-bold">
+              <span>Queue Velocity:</span>
+              <span class="bg-[#ff4d00] text-white px-2 py-0.5 rounded-full text-[10px]">184 ops/sec</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search -->
+        <div class="space-y-2">
+          <div class="text-xs font-black text-[#111] uppercase tracking-wider">Active Apps & Processes</div>
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-[#111]"></i>
+            <input type="text" id="search-input" oninput="renderAppList()" placeholder="Filter app or task ID..." 
+              class="w-full bg-[#f4f4f6] text-xs text-[#111] font-medium pl-9 pr-3 py-2.5 rounded-xl border-2 border-[#111] focus:outline-none focus:bg-white shadow-[2px_2px_0_#111]">
+          </div>
+        </div>
+
+        <!-- App List -->
+        <div class="space-y-2">
+          <div class="text-xs font-black text-[#111] uppercase tracking-wider flex justify-between">
+            <span>Orbits (Apps)</span>
+            <span id="total-tasks-badge" class="font-mono text-[#ff4d00]">4 Planets</span>
+          </div>
+          <div id="app-list-container" class="space-y-2.5 text-xs"></div>
+        </div>
+
+        <!-- Hint Card -->
+        <div id="solar-hint-box" class="nothing-card p-4 text-xs space-y-1 bg-[#ff4d00]/5">
+          <div class="text-[#111] font-extrabold flex items-center gap-1.5">
+            <i data-lucide="mouse-pointer" class="w-4 h-4 text-[#ff4d00]"></i> Nothing OS Visualizer
+          </div>
+          <p class="text-[11px] leading-relaxed text-[#555]">Click any planet or moon node to inspect live process data or trigger actions.</p>
+        </div>
+
+      </div>
+
+      <!-- Footer Quick Status -->
+      <div class="pt-3 border-t-2 border-[#111] flex items-center justify-between text-xs text-[#111] font-mono font-bold">
+        <span>Engine: <strong class="text-[#ff4d00]">ONLINE</strong></span>
+        <span>PID: 4891</span>
+      </div>
+    </aside>
+
+    <!-- RIGHT / GRAPH PORTION -->
+    <main id="main-graph-area" class="w-[70%] dot-grid relative overflow-hidden flex flex-col justify-center items-center transition-all duration-500">
+      
+      <!-- GRAPH CONTROLS OVERLAY -->
+      <div class="absolute top-4 left-4 z-10 flex items-center gap-2">
+        <div class="bg-white border-2 border-[#111] px-3.5 py-1.5 rounded-full text-xs font-bold text-[#111] shadow-[3px_3px_0px_#111] flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-pulse"></span>
+          <span>Impact Visualizer</span>
+        </div>
+        <button onclick="resetCameraView()" class="px-3.5 py-1.5 bg-white border-2 border-[#111] rounded-full text-xs font-bold text-[#111] shadow-[3px_3px_0px_#111] hover:bg-[#111] hover:text-white transition flex items-center gap-1">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-[#ff4d00]"></i> Recenter
+        </button>
+      </div>
+
+      <!-- SELECTED NODE MINI FLOATING CARD -->
+      <div id="node-floating-card" class="hidden absolute top-4 right-4 z-20 nothing-card p-4 max-w-xs w-72 space-y-3 bg-white">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-2">
+            <div id="float-icon" class="p-2 rounded-xl border-2 border-[#111] bg-[#ff4d00] text-white">
+              <i data-lucide="layers" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div id="float-title" class="font-extrabold text-[#111] text-xs truncate">Selected Task</div>
+              <div id="float-subtitle" class="text-[10px] text-[#666] font-mono">PID: 9021</div>
+            </div>
+          </div>
+          <button onclick="closeFloatCard()" class="text-[#111] hover:text-[#ff4d00]"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+
+        <div class="space-y-1.5 text-xs font-mono text-[#111] bg-[#f4f4f6] p-3 rounded-xl border-2 border-[#111]">
+          <div class="flex justify-between"><span>Status:</span> <span id="float-status" class="font-bold text-[#ff4d00]">RUNNING</span></div>
+          <div class="flex justify-between"><span>CPU Cost:</span> <span id="float-cpu" class="font-bold">18.4%</span></div>
+          <div class="flex justify-between"><span>Memory:</span> <span id="float-ram" class="font-bold">142 MB</span></div>
+        </div>
+
+        <button onclick="expandDetailView()" class="nothing-btn w-full py-2 bg-[#111] hover:bg-[#ff4d00] text-white font-bold rounded-full text-xs flex items-center justify-center gap-1.5 transition">
+          <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Expand Full Inspector
+        </button>
+      </div>
+
+      <!-- SOLAR SYSTEM SVG CANVAS -->
+      <svg id="solar-canvas" class="w-full h-full cursor-grab active:cursor-grabbing"></svg>
+    </main>
+
+    <!-- EXPANDED DETAILED PROCESS INSPECTOR -->
+    <aside id="expanded-detail-panel" class="w-0 opacity-0 overflow-hidden bg-white border-l-2 border-[#111] flex flex-col justify-between shrink-0 transition-all duration-500 z-30">
+      
+      <!-- Inspector Header -->
+      <div class="h-16 bg-white border-b-2 border-[#111] px-6 flex items-center justify-between shrink-0 shadow-[0_2px_0_#111]">
+        <div class="flex items-center space-x-3">
+          <div id="panel-icon" class="p-2.5 rounded-xl bg-[#ff4d00] text-white border-2 border-[#111] shadow-[2px_2px_0_#111]">
+            <i data-lucide="cpu" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <div id="panel-name" class="font-extrabold text-[#111] text-sm">PostgreSQL Index Maintenance</div>
+            <div id="panel-pid" class="text-[11px] font-mono text-[#666]">Planet: Postgres Engine • PID: 9110</div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button onclick="actionPause()" class="nothing-btn px-3 py-1.5 bg-white hover:bg-[#ff4d00] hover:text-white text-[#111] border-2 border-[#111] rounded-full text-xs font-bold transition flex items-center gap-1">
+            <i data-lucide="pause" class="w-3.5 h-3.5"></i> Pause
+          </button>
+          <button onclick="actionRestart()" class="nothing-btn px-3 py-1.5 bg-white hover:bg-[#ff4d00] hover:text-white text-[#111] border-2 border-[#111] rounded-full text-xs font-bold transition flex items-center gap-1">
+            <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i> Restart
+          </button>
+          <button onclick="actionKill()" class="nothing-btn px-3 py-1.5 bg-[#ff4d00] text-white hover:bg-[#111] border-2 border-[#111] rounded-full text-xs font-bold transition flex items-center gap-1">
+            <i data-lucide="square" class="w-3.5 h-3.5"></i> Terminate
+          </button>
+          <div class="h-5 w-[2px] bg-[#111] mx-1"></div>
+          <button onclick="collapseDetailView()" class="nothing-btn p-2 border-2 border-[#111] rounded-full text-[#111] hover:bg-[#111] hover:text-white transition">
+            <i data-lucide="minimize-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Inspector Body Grid -->
+      <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-5 bg-[#f4f4f6] dot-grid">
+        
+        <!-- Left 2 Cols -->
+        <div class="lg:col-span-2 space-y-4">
+          <div class="nothing-card p-5 space-y-3 bg-white">
+            <div class="flex justify-between items-center text-xs font-bold text-[#111]">
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="activity" class="w-4 h-4 text-[#ff4d00]"></i> Real-time Telemetry Load
+              </span>
+              <span class="font-mono text-[11px] bg-[#f4f4f6] px-2 py-0.5 rounded border border-[#111]">Sampling: 100ms</span>
+            </div>
+            <div class="h-32 w-full pt-2">
+              <svg id="panel-chart" class="w-full h-full stroke-[#ff4d00] overflow-visible"></svg>
+            </div>
+          </div>
+
+          <!-- Terminal Logs -->
+          <div class="nothing-card flex flex-col h-72 overflow-hidden bg-white">
+            <div class="bg-[#111] px-4 py-2.5 text-white border-b-2 border-[#111] flex justify-between items-center text-xs font-mono font-bold">
+              <span class="flex items-center gap-1.5"><i data-lucide="terminal" class="w-3.5 h-3.5 text-[#ff4d00]"></i> Output Stream</span>
+              <span class="text-[10px] text-[#aaa]">Auto-scroll: ON</span>
+            </div>
+            <div id="panel-logs-box" class="flex-1 p-4 overflow-y-auto font-mono text-xs space-y-1.5 text-[#111] bg-white"></div>
+          </div>
+        </div>
+
+        <!-- Right 1 Col -->
+        <div class="space-y-4">
+          <div class="nothing-card p-5 space-y-3 bg-white">
+            <div class="text-xs font-black text-[#111] uppercase tracking-wider">Task Parameters</div>
+            <div class="space-y-2.5 text-xs font-mono font-bold">
+              <div class="flex justify-between"><span class="text-[#666]">Trigger Source:</span> <span id="panel-trigger" class="text-[#111]">Cron :: @daily</span></div>
+              <div class="flex justify-between"><span class="text-[#666]">Priority Nice:</span> <span id="panel-priority" class="text-[#ff4d00]">HIGH (-5)</span></div>
+              <div class="flex justify-between"><span class="text-[#666]">Elapsed Time:</span> <span id="panel-elapsed" class="text-[#111]">00:04:12</span></div>
+              <div class="flex justify-between"><span class="text-[#666]">Sub-Threads:</span> <span class="text-[#ff4d00]">4 Workers</span></div>
+            </div>
+          </div>
+
+          <div class="nothing-card p-5 space-y-2 bg-white">
+            <div class="text-xs font-black text-[#111] uppercase tracking-wider">Input Arguments</div>
+            <div class="bg-[#f4f4f6] p-3 rounded-xl border-2 border-[#111] font-mono text-[11px] text-[#111] overflow-x-auto">
+              <pre id="panel-payload">{ "batch": 5000, "concurrent": true }</pre>
+            </div>
+          </div>
+
+          <div class="nothing-card p-5 space-y-2 bg-white">
+            <div class="text-xs font-black text-[#111] uppercase tracking-wider">Diagnostics</div>
+            <div id="panel-trace" class="bg-[#f4f4f6] p-3 rounded-xl border-2 border-[#111] font-mono text-[11px] text-[#111] whitespace-pre-wrap">
+              All worker threads running normally. Zero uncaught exceptions.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Bar -->
+      <div class="h-9 bg-white border-t-2 border-[#111] px-6 flex items-center justify-between text-xs font-mono font-bold text-[#111] shrink-0 shadow-[0_-2px_0_#111]">
+        <span>Memory Peak: 840 MB</span>
+        <span>Thread Lock: Unlocked</span>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    let isSimulating = true;
+    let selectedTask = null;
+    let isExpanded = false;
+
+    let solarData = {
+      sun: { name: 'Daemon Core', icon: 'cpu', cpu: 34, ram: 5.8 },
+      planets: [
+        {
+          id: 'app-postgres',
+          name: 'PostgreSQL Engine',
+          icon: 'database',
+          color: 'orange',
+          strokeColor: '#111111',
+          orbitRadius: 110,
+          angle: 0.5,
+          speed: 0.0008,
+          tasks: [
+            {
+              id: 'task-index',
+              name: 'Index Maintenance',
+              status: 'running',
+              cpu: 45.2,
+              ram: 840,
+              pid: 9110,
+              elapsed: '00:03:45',
+              trigger: 'Cron @daily',
+              priority: 'High',
+              moonOrbitRadius: 36,
+              moonAngle: 1.2,
+              moonSpeed: 0.004,
+              logs: [
+                '[14:05:00] INFO Rebuilding indices on table users_activity',
+                '[14:06:20] EXEC Lock acquired on partition_2026_q1',
+                '[14:07:01] WARN High CPU pressure detected on core 3'
+              ],
+              payload: '{\n  "table": "users_activity",\n  "concurrently": true\n}'
+            },
+            {
+              id: 'task-wal-sync',
+              name: 'WAL Replication Sync',
+              status: 'running',
+              cpu: 12.1,
+              ram: 210,
+              pid: 9114,
+              elapsed: '00:15:10',
+              trigger: 'Stream Sync',
+              priority: 'Normal',
+              moonOrbitRadius: 52,
+              moonAngle: 3.8,
+              moonSpeed: 0.003,
+              logs: [
+                '[14:00:00] INFO Connected to replica us-east-slave',
+                '[14:08:12] EXEC Synced 14,200 WAL logs'
+              ],
+              payload: '{\n  "replica": "us-east-slave",\n  "lagMs": 4\n}'
+            }
+          ]
+        },
+        {
+          id: 'app-worker',
+          name: 'Email & Message Gateway',
+          icon: 'mail',
+          color: 'orange',
+          strokeColor: '#111111',
+          orbitRadius: 180,
+          angle: 2.1,
+          speed: 0.0006,
+          tasks: [
+            {
+              id: 'task-smtp',
+              name: 'SMTP Ingestion Batch',
+              status: 'running',
+              cpu: 18.4,
+              ram: 142,
+              pid: 9021,
+              elapsed: '00:08:12',
+              trigger: 'Webhook Event',
+              priority: 'Normal',
+              moonOrbitRadius: 38,
+              moonAngle: 0.4,
+              moonSpeed: 0.005,
+              logs: [
+                '[14:00:10] INFO Fetching pending batch from queue',
+                '[14:00:15] EXEC Processing 4,500 inbound messages'
+              ],
+              payload: '{\n  "provider": "SendGrid",\n  "batchId": "b-9912"\n}'
+            }
+          ]
+        },
+        {
+          id: 'app-ml',
+          name: 'ML Inference Service',
+          icon: 'brain',
+          color: 'orange',
+          strokeColor: '#111111',
+          orbitRadius: 250,
+          angle: 4.2,
+          speed: 0.0004,
+          tasks: [
+            {
+              id: 'task-ml-train',
+              name: 'Model Tensor Training',
+              status: 'failed',
+              cpu: 0.0,
+              ram: 1240,
+              pid: 8712,
+              elapsed: '00:12:04',
+              trigger: 'Manual Dispatch',
+              priority: 'High',
+              moonOrbitRadius: 40,
+              moonAngle: 2.2,
+              moonSpeed: 0.003,
+              logs: [
+                '[13:50:00] INFO Initializing PyTorch tensors...',
+                '[14:02:14] ERROR CUDA Out Of Memory Error (OOM)'
+              ],
+              payload: '{\n  "model": "recommendation-v4",\n  "epochs": 10\n}',
+              trace: 'RuntimeError: CUDA out of memory. Tried to allocate 4.00 GiB on GPU 0.'
+            }
+          ]
+        },
+        {
+          id: 'app-video',
+          name: 'Media Transcoder',
+          icon: 'film',
+          color: 'orange',
+          strokeColor: '#111111',
+          orbitRadius: 320,
+          angle: 5.5,
+          speed: 0.0003,
+          tasks: [
+            {
+              id: 'task-hls',
+              name: 'HLS 1080p Transcode',
+              status: 'running',
+              cpu: 38.5,
+              ram: 610,
+              pid: 8840,
+              elapsed: '00:18:20',
+              trigger: 'S3 Event',
+              priority: 'Normal',
+              moonOrbitRadius: 42,
+              moonAngle: 4.5,
+              moonSpeed: 0.004,
+              logs: [
+                '[13:45:00] INFO Raw video stream downloading',
+                '[14:09:00] EXEC Transcoding chunk 42/100'
+              ],
+              payload: '{\n  "input": "s3://raw/video.mp4",\n  "codec": "h264"\n}'
+            }
+          ]
+        }
+      ]
+    };
+
+    function safeInitIcons() {
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+      }
+    }
+
+    window.onload = () => {
+      safeInitIcons();
+      renderAppList();
+      requestAnimationFrame(animationLoop);
+    };
+
+    function animationLoop() {
+      if (isSimulating) {
+        solarData.planets.forEach(p => {
+          p.angle += p.speed;
+          p.tasks.forEach(t => {
+            t.moonAngle += t.moonSpeed;
+          });
+        });
+      }
+      renderSolarGraph();
+      requestAnimationFrame(animationLoop);
+    }
+
+    function renderSolarGraph() {
+      const svg = document.getElementById('solar-canvas');
+      if (!svg) return;
+
+      const width = svg.clientWidth || 800;
+      const height = svg.clientHeight || 600;
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      let svgHtml = `
+        <!-- Central Sun Core (Nothing OS Style with Metallic Shimmer) -->
+        <g transform="translate(${centerX}, ${centerY})">
+          <circle r="38" fill="url(#metal-grad)" stroke="#111111" stroke-width="2.5" class="sun-core" />
+          <circle r="46" fill="none" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3" />
+          <text y="4" text-anchor="middle" fill="#111111" font-weight="900" font-size="10" font-family="Plus Jakarta Sans">DAEMON</text>
+        </g>
+        <defs>
+          <linearGradient id="metal-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffffff" />
+            <stop offset="50%" stop-color="#e2e8f0" />
+            <stop offset="100%" stop-color="#cbd5e1" />
+          </linearGradient>
+        </defs>
+      `;
+
+      solarData.planets.forEach(planet => {
+        svgHtml += `<circle cx="${centerX}" cy="${centerY}" r="${planet.orbitRadius}" class="orbit-line" />`;
+
+        const px = centerX + planet.orbitRadius * Math.cos(planet.angle);
+        const py = centerY + planet.orbitRadius * Math.sin(planet.angle);
+
+        planet.tasks.forEach(task => {
+          const mx = px + task.moonOrbitRadius * Math.cos(task.moonAngle);
+          const my = py + task.moonOrbitRadius * Math.sin(task.moonAngle);
+          const isSelected = selectedTask && selectedTask.id === task.id;
+
+          svgHtml += `<line x1="${px}" y1="${py}" x2="${mx}" y2="${my}" class="moon-link" />`;
+
+          let moonFill = task.status === 'failed' ? '#111111' : '#ff4d00';
+          let moonStroke = '#111111';
+
+          svgHtml += `
+            <g transform="translate(${mx}, ${my})" onclick="onTaskOrPlanetClick('${task.id}', true)" class="cursor-pointer group">
+              <circle r="20" fill="transparent" />
+              <circle r="${isSelected ? 16 : 12}" fill="${moonFill}" stroke="${moonStroke}" stroke-width="2" />
+              <circle r="4" fill="#ffffff" />
+              <text y="24" text-anchor="middle" fill="#111111" font-weight="bold" font-size="10" font-family="Plus Jakarta Sans">${task.name}</text>
+            </g>
+          `;
+        });
+
+        const firstTaskId = planet.tasks.length > 0 ? planet.tasks[0].id : null;
+        svgHtml += `
+          <g transform="translate(${px}, ${py})" onclick="onTaskOrPlanetClick('${firstTaskId}', true)" class="cursor-pointer">
+            <circle r="30" fill="transparent" />
+            <circle r="22" fill="#ffffff" stroke="#111111" stroke-width="2.5" />
+            <circle r="26" fill="none" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3" />
+            <text y="-32" text-anchor="middle" fill="#111111" font-weight="900" font-size="11" font-family="Plus Jakarta Sans">${planet.name}</text>
+            <circle r="6" fill="#ff4d00" stroke="#111111" stroke-width="1.5" />
+          </g>
+        `;
+      });
+
+      svg.innerHTML = svgHtml;
+    }
+
+    function onTaskOrPlanetClick(taskId, autoExpand = false) {
+      if (!taskId) return;
+      selectTask(taskId);
+      if (autoExpand) {
+        expandDetailView();
+      }
+    }
+
+    function renderAppList() {
+      const container = document.getElementById('app-list-container');
+      const searchQuery = document.getElementById('search-input').value.toLowerCase();
+
+      container.innerHTML = solarData.planets.map(planet => {
+        const filteredTasks = planet.tasks.filter(t => t.name.toLowerCase().includes(searchQuery) || t.id.includes(searchQuery));
+        if (searchQuery && filteredTasks.length === 0) return '';
+
+        return `
+          <div class="nothing-card p-3.5 space-y-2 bg-white">
+            <div class="flex items-center justify-between cursor-pointer" onclick="onTaskOrPlanetClick('${planet.tasks[0]?.id}', true)">
+              <span class="font-black text-[#111] text-xs flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full border-2 border-[#111] bg-[#ff4d00]"></span>
+                ${planet.name}
+              </span>
+              <span class="font-mono text-[10px] text-white bg-[#111] px-2 py-0.5 rounded-full font-bold">${planet.tasks.length} tasks</span>
+            </div>
+            <div class="space-y-1 pl-2 border-l-2 border-[#ff4d00]">
+              ${planet.tasks.map(t => `
+                <div onclick="onTaskOrPlanetClick('${t.id}', true)" class="p-1.5 rounded-lg hover:bg-[#111] hover:text-white transition cursor-pointer flex justify-between items-center text-[11px] font-semibold">
+                  <span class="truncate">${t.name}</span>
+                  <span class="font-mono font-bold text-[#ff4d00]">${t.cpu}%</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectTask(taskId) {
+      let foundTask = null;
+      let parentPlanet = null;
+
+      solarData.planets.forEach(p => {
+        p.tasks.forEach(t => {
+          if (t.id === taskId) {
+            foundTask = t;
+            parentPlanet = p;
+          }
+        });
+      });
+
+      if (!foundTask) return;
+      selectedTask = foundTask;
+
+      const floatCard = document.getElementById('node-floating-card');
+      document.getElementById('float-title').innerText = foundTask.name;
+      document.getElementById('float-subtitle').innerText = `App: ${parentPlanet.name} • PID: ${foundTask.pid}`;
+      document.getElementById('float-status').innerText = foundTask.status.toUpperCase();
+      document.getElementById('float-cpu').innerText = `${foundTask.cpu}%`;
+      document.getElementById('float-ram').innerText = `${foundTask.ram} MB`;
+
+      floatCard.classList.remove('hidden');
+
+      if (isExpanded) {
+        updateExpandedPanel();
+      }
+    }
+
+    function closeFloatCard() {
+      document.getElementById('node-floating-card').classList.add('hidden');
+    }
+
+    function expandDetailView() {
+      if (!selectedTask) return;
+      isExpanded = true;
+
+      const mainGraph = document.getElementById('main-graph-area');
+      const detailPanel = document.getElementById('expanded-detail-panel');
+      const solarHint = document.getElementById('solar-hint-box');
+
+      mainGraph.classList.remove('w-[70%]');
+      mainGraph.classList.add('w-[30%]');
+
+      detailPanel.classList.remove('w-0', 'opacity-0');
+      detailPanel.classList.add('w-[70%]', 'opacity-100');
+
+      if (solarHint) solarHint.classList.add('hidden');
+
+      updateExpandedPanel();
+      safeInitIcons();
+    }
+
+    function collapseDetailView() {
+      isExpanded = false;
+
+      const mainGraph = document.getElementById('main-graph-area');
+      const detailPanel = document.getElementById('expanded-detail-panel');
+      const solarHint = document.getElementById('solar-hint-box');
+
+      mainGraph.classList.remove('w-[30%]');
+      mainGraph.classList.add('w-[70%]');
+
+      detailPanel.classList.remove('w-[70%]', 'opacity-100');
+      detailPanel.classList.add('w-0', 'opacity-0');
+
+      if (solarHint) solarHint.classList.remove('hidden');
+    }
+
+    function updateExpandedPanel() {
+      if (!selectedTask) return;
+      
+      document.getElementById('panel-name').innerText = selectedTask.name;
+      document.getElementById('panel-pid').innerText = `PID: ${selectedTask.pid} • Status: ${selectedTask.status}`;
+      document.getElementById('panel-trigger').innerText = selectedTask.trigger;
+      document.getElementById('panel-priority').innerText = selectedTask.priority;
+      document.getElementById('panel-elapsed').innerText = selectedTask.elapsed;
+      document.getElementById('panel-payload').innerText = selectedTask.payload;
+
+      const traceBox = document.getElementById('panel-trace');
+      if (selectedTask.trace) {
+        traceBox.innerText = selectedTask.trace;
+      } else {
+        traceBox.innerText = "All worker threads running normally. Zero uncaught exceptions.";
+      }
+
+      const logsBox = document.getElementById('panel-logs-box');
+      logsBox.innerHTML = selectedTask.logs.map(log => `<div>${log}</div>`).join('');
+    }
+
+    function toggleSimulation() {
+      isSimulating = !isSimulating;
+      document.getElementById('sim-status-text').innerText = isSimulating ? 'Simulate Live Orbit' : 'Paused';
+    }
+
+    function spawnNewTask() {
+      alert("Spawning new background worker task orbit...");
+    }
+
+    function resetCameraView() {
+      selectedTask = null;
+      closeFloatCard();
+      collapseDetailView();
+    }
+
+    function actionPause() { alert("Task paused."); }
+    function actionRestart() { alert("Task restarted."); }
+    function actionKill() { alert("Task terminated."); }
+  </script>
+</body>
+</html>
